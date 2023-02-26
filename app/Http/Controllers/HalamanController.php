@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Halaman;
 use Illuminate\Http\Request;
+use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\Session;
 
 class HalamanController extends Controller
@@ -15,8 +16,31 @@ class HalamanController extends Controller
      */
     public function index()
     {
-        $data = Halaman::orderBy('judul', 'asc')->get();
-        return view('dashboard.halaman.index', compact('data'));
+        if (request()->ajax()) {
+            $halaman = Halaman::query()->latest();
+            return DataTables()->of($halaman)
+                ->addIndexColumn()
+                ->addColumn('action', function ($item) {
+                    return '
+                        <div class="btn-group">
+                            <a href="' . route('halaman.edit', $item->id) . '" class="btn btn-primary btn-sm">
+                                <i class="fa fa-pencil-alt"></i>
+                                Edit
+                            </a>
+                            <form action="' . route('halaman.destroy', $item->id) . '" method="POST">
+                                ' . method_field('delete') . csrf_field() . '
+                                <button type="submit" class="btn btn-danger btn-sm">
+                                    <i class="fa fa-trash"></i>
+                                    Hapus
+                                </button>
+                            </form>
+                        </div>
+                    ';
+                })
+                ->rawColumns(['action'])
+                ->make(true);
+        }
+        return view('dashboard.halaman.index');
     }
 
     /**

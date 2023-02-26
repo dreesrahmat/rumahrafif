@@ -19,7 +19,7 @@
 
 @endif
 <div class="table-responsive">
-    <table class="table table-striped">
+    <table class="table table-striped" id="table-halaman">
         <thead>
             <tr>
                 <th class="col-1">No</th>
@@ -28,21 +28,30 @@
             </tr>
         </thead>
         <tbody>
-            @foreach ($data as $item)
-            <tr>
-                <td>{{ $loop->iteration }}</td>
-                <td>{{ $item->judul }}</td>
-                <td>
-                    <a href="{{ route('halaman.edit', $item->id) }}" class="btn btn-sm btn-warning">Edit</a>
-                    <form onsubmit="return confirm('Yakin mau hapus data ini?')" action="{{ route('halaman.destroy', $item->id) }}" method="POST" class="d-inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="submit" class="btn btn-sm btn-danger">Hapus</button>
-                    </form>
-                </td>
-            </tr>
-            @endforeach
+
         </tbody>
     </table>
 </div>
 @endsection
+@push('after-script')
+   <script>
+       $(document).ready(function() {
+           $('#table-halaman').DataTable({
+               processing: true,
+               serverSide: true,
+               ajax: "{{ route('halaman.index') }}",
+               columns:
+					[
+						{
+							name: 'id',
+							render: function(data, type, full, meta) {
+								return meta.row + 1;
+							}
+						},
+						{data: 'judul', name: 'judul'},
+						{data: 'action', name: 'action', orderable: false, searchable: false},
+					]
+           });
+       });
+   </script>
+@endpush

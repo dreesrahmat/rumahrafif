@@ -30,6 +30,7 @@
     href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-tokenfield/0.12.0/css/bootstrap-tokenfield.css"
     integrity="sha512-wcf2ifw+8xI4FktrSorGwO7lgRzGx1ld97ySj1pFADZzFdcXTIgQhHMTo7tQIADeYdRRnAjUnF00Q5WTNmL3+A=="
     crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link href="https://cdn.datatables.net/v/bs5/dt-1.13.2/datatables.min.css"/>
 
     <style>
         .tokenfield .token {
@@ -191,6 +192,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-bs5.min.js"></script>
 
     <script src="{{ asset('/admin/js/jquery.cookie.js') }}" type="text/javascript"></script>
+
+    <script src="https://cdn.datatables.net/v/bs5/dt-1.13.2/datatables.min.js"></script>
 
     <script>
         $(document).ready(function() {
