@@ -8,7 +8,7 @@
     @csrf
     <div class="mb-3">
         <label for="judul" class="form-label">Judul</label>
-        <input type="text" class="form-control form-control-sm @error('title') is-invalid @enderror" name="judul" id="judul" aria-describedby="helpId"
+        <input type="text" class="form-control form-control-sm @error('judul') is-invalid @enderror" name="judul" id="judul" aria-describedby="helpId"
             placeholder="Judul" value="{{ Session::get('judul') }}">
         @error('judul')
             <div class="alert alert-danger">{{ $message }}</div>

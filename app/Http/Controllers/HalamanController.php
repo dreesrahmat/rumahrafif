@@ -6,6 +6,7 @@ use App\Models\Halaman;
 use Illuminate\Http\Request;
 use Yajra\DataTables\DataTables;
 use Illuminate\Support\Facades\Session;
+use Illuminate\Support\Facades\Validator;
 
 class HalamanController extends Controller
 {
@@ -20,23 +21,10 @@ class HalamanController extends Controller
             $halaman = Halaman::query()->latest();
             return DataTables()->of($halaman)
                 ->addIndexColumn()
-                ->addColumn('action', function ($item) {
-                    return '
-                        <div class="btn-group">
-                            <a href="' . route('halaman.edit', $item->id) . '" class="btn btn-primary btn-sm">
-                                <i class="fa fa-pencil-alt"></i>
-                                Edit
-                            </a>
-                            <form action="' . route('halaman.destroy', $item->id) . '" method="POST">
-                                ' . method_field('delete') . csrf_field() . '
-                                <button type="submit" class="btn btn-danger btn-sm">
-                                    <i class="fa fa-trash"></i>
-                                    Hapus
-                                </button>
-                            </form>
-                        </div>
-                    ';
-                })
+                ->addColumn('action', function($row){
+                        $btn = '<a href="javascript:void(0)" id="btn-edit-post" data-id="'.$row->id.'" class="btn btn-primary btn-sm">EDIT</a> <a href="javascript:void(0)" id="btn-delete-post" data-id="'.$row->id.'" class="btn btn-danger btn-sm">DELETE</a>';
+                        return $btn;
+                    })
                 ->rawColumns(['action'])
                 ->make(true);
         }
@@ -61,21 +49,30 @@ class HalamanController extends Controller
      */
     public function store(Request $request)
     {
-        Session::flash('judul', $request->judul);
-        Session::flash('deskripsi', $request->deskripsi);
-        $validate = $request->validate(
-            [
-            'judul' => 'required',
-            'deskripsi' => 'required',
-            ],
-            [
-                'judul.required' => 'Judul wajib diisi',
-                'deskripsi.required' => 'Deskripsi wajib diisi',
-            ]
-        );
+        //define validation rules
+        $validator = Validator::make($request->all(), [
+            'judul'     => 'required',
+            'deskripsi'   => 'required',
+        ], [
+            'judul.required' => 'judul halaman harus diisi',
+            'deskripsi.required' => 'deskripsi halaman harus diisi',
+        ]);
 
-        $data = Halaman::create($validate);
-        return redirect()->route('halaman.index')->with('success', 'Halaman berhasil ditambahkan');
+        //check if validation fails
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $data = Halaman::create([
+            'judul' => $request->judul,
+            'deskripsi' => $request->deskripsi,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Berhasil Disimpan!',
+            'data'    => $data
+        ]);
     }
 
     /**
@@ -84,9 +81,14 @@ class HalamanController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function show($id)
+    public function show(Halaman $halaman)
     {
-        //
+        //return response
+        return response()->json([
+            'success' => true,
+            'message' => 'Detail Data Post',
+            'data'    => $halaman
+        ]);
     }
 
     /**
