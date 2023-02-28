@@ -79,10 +79,7 @@
                 {data: 'action',name: 'action', orderable: false, searchable: false},
             ]
         });
-    });
-</script>
-<script>
-    $(function () {
+
         /* Menambahkan modal javascript dan tambah data halaman */
         $('.modal-create').click(function () {
             $('#modal-form').modal('show');
@@ -105,7 +102,6 @@
                         if (response.success) {
                             //show success message
                             Swal.fire({
-                                type: 'success',
                                 icon: 'success',
                                 title: `${response.message}`,
                                 showConfirmButton: false,
@@ -115,7 +111,7 @@
                             $('#judul').val('');
                             $('#deskripsi').val('');
                             //close modal
-                            $('#modal-create').modal('hide');
+                            $('#modal-form').modal('hide');
                             $('#table-halaman').DataTable().ajax.reload();
                         }
                     },
@@ -143,12 +139,12 @@
         $(document).on('click', '.modal-edit', function () {
             $('#modal-form').modal('show');
             const id = $(this).data('id');
-            $.get('/dashboard/halaman/' + id, function ({
+            $.get(`/dashboard/halaman/${id}`, function ({
                 data
             }) {
                 $('input[name="judul"]').val(data.judul);
                 $('textarea[name="deskripsi"]').val(data.deskripsi);
-                $('.form-halaman').submit(function (e) {
+                $('.form-halaman').off('submit').submit(function (e) {
                     e.preventDefault();
                     const formData = new FormData(this);
                     $.ajax({
@@ -165,18 +161,13 @@
                             if (response.success) {
                                 //show success message
                                 Swal.fire({
-                                    type: 'success',
                                     icon: 'success',
                                     title: `${response.message}`,
                                     showConfirmButton: false,
                                     timer: 3000
                                 });
-
-                                //clear form
-                                $('#judul').val('');
-                                $('#deskripsi').val('');
                                 //close modal
-                                $('#modal-create').modal('hide');
+                                $('#modal-form').modal('hide');
                                 $('#table-halaman').DataTable().ajax.reload();
                             }
                         },
@@ -224,7 +215,6 @@
                         success: function (response) {
                             //show success message
                             Swal.fire({
-                                type: 'success',
                                 icon: 'success',
                                 title: `${response.message}`,
                                 showConfirmButton: false,
