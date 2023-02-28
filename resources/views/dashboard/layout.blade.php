@@ -189,14 +189,9 @@
     <script src="{{ asset('/admin/js/jquery.dataTables.js') }}"></script>
     <script src="{{ asset('/admin/js/dataTables.bootstrap4.js') }}"></script>
     <!-- End custom js for this page-->
-    <!-- Summernote js for this page-->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-bs5.min.js"></script>
-
     <script src="{{ asset('/admin/js/jquery.cookie.js') }}" type="text/javascript"></script>
-
-    <script src="https://cdn.datatables.net/v/bs5/dt-1.13.2/datatables.min.js"></script>
-
+    <!-- Summernote js for this page-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/summernote/0.8.20/summernote-bs5.min.js"></script>
     <script>
         $(document).ready(function() {
             $('.summernote').summernote({

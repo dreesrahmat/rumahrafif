@@ -2,7 +2,7 @@
 @section('content')
 <p class="card-title">Halaman</p>
 <div class="pb-3">
-    <a href="javascript:void(0)" class="btn btn-primary" id="btn-create-post">+ Halaman</a>
+    <a href="javascript:void(0)" class="btn btn-primary modal-create">+ Halaman</a>
 </div>
 @if (Session::has('success'))
 <div class="alert alert-success alert-dismissible fade show" role="alert">
@@ -34,33 +34,35 @@
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="modal-create" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+<div class="modal fade" id="modal-form" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title fs-5" id="exampleModalLabel">TAMBAH HALAMAN</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">
-                </button>
+                <h5 class="modal-title fs-5" id="exampleModalLabel">FORM HALAMAN</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <div class="form-group">
-                    <label for="name" class="control-label">Judul</label>
-                    <input type="text" class="form-control" id="judul">
-                    <div class="alert alert-danger mt-2 d-none" role="alert" id="alert-title"></div>
-                </div>
-                <div class="form-group">
-                    <label class="control-label">Deskripsi</label>
-                    <textarea name="deskripsi summernote" class="form-control" id="deskripsi" rows="4"></textarea>
-                    <div class="alert alert-danger mt-2 d-none" role="alert" id="alert-content"></div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">TUTUP</button>
-                <button type="button" class="btn btn-primary" id="store">SIMPAN</button>
+                <form class="form-halaman">
+                    <div class="form-group">
+                        <label for="judul" class="control-label">Judul</label>
+                        <input type="text" name="judul" class="form-control" id="judul">
+                        <div class="alert alert-danger mt-2 d-none" role="alert" id="alert-title"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="control-label">Deskripsi</label>
+                        <textarea name="deskripsi" class="form-control" id="deskripsi" rows="4"></textarea>
+                        <div class="alert alert-danger mt-2 d-none" role="alert" id="alert-content"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="submit" class="btn btn-primary" id="store">SIMPAN</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">TUTUP</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
 </div>
+
 @endsection
 @push('after-script')
 <script>
@@ -69,6 +71,8 @@
             processing: true,
             serverSide: true,
             ajax: "{{ route('halaman.index') }}",
+            lengthMenu: [5, 10, 25, 50],
+            pageLength: 5,
             columns: [
                 {data: 'DT_RowIndex', name: 'DT_RowIndex', orderable: false, searchable: false},
                 {data: 'judul',name: 'judul'},
@@ -78,73 +82,160 @@
     });
 </script>
 <script>
-    //button create post event
-    $('body').on('click', '#btn-create-post', function () {
-
-        //open modal
-        $('#modal-create').modal('show');
-    });
-
-    //action create post
-    $('#store').click(function (e) {
-        e.preventDefault();
-
-        //define variable
-        let judul = $('#judul').val();
-        let deskripsi = $('#deskripsi').val();
-        let token = $("meta[name='csrf-token']").attr("content");
-
-        //ajax
-        $.ajax({
-
-            url: "{{ route('halaman.store') }}",
-            type: "POST",
-            cache: false,
-            data: {
-                "judul": judul,
-                "deskripsi": deskripsi,
-                "_token": token
-            },
-            success: function (response) {
-
-                //show success message
-                Swal.fire({
-                    type: 'success',
-                    icon: 'success',
-                    title: `${response.message}`,
-                    showConfirmButton: false,
-                    timer: 3000
+    $(function () {
+        /* Menambahkan modal javascript dan tambah data halaman */
+        $('.modal-create').click(function () {
+            $('#modal-form').modal('show');
+            $('input[name="judul"]').val('');
+            $('textarea[name="deskripsi"]').val('');
+            $('.form-halaman').submit(function (e) {
+                e.preventDefault();
+                const formData = new FormData(this);
+                $.ajax({
+                    url: "{{ route('halaman.store') }}",
+                    type: 'POST',
+                    data: formData,
+                    cache: false,
+                    contentType: false,
+                    processData: false,
+                    headers: {
+                        'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            //show success message
+                            Swal.fire({
+                                type: 'success',
+                                icon: 'success',
+                                title: `${response.message}`,
+                                showConfirmButton: false,
+                                timer: 3000
+                            });
+                            //clear form
+                            $('#judul').val('');
+                            $('#deskripsi').val('');
+                            //close modal
+                            $('#modal-create').modal('hide');
+                            $('#table-halaman').DataTable().ajax.reload();
+                        }
+                    },
+                    error: function (error) {
+                        if (error.responseJSON.judul[0]) {
+                            //show alert
+                            $('#alert-title').removeClass('d-none');
+                            $('#alert-title').addClass('d-block');
+                            //add message to alert
+                            $('#alert-title').html(error.responseJSON.judul[0]);
+                        }
+                        if (error.responseJSON.deskripsi[0]) {
+                            //show alert
+                            $('#alert-content').removeClass('d-none');
+                            $('#alert-content').addClass('d-block');
+                            //add message to alert
+                            $('#alert-content').html(error.responseJSON.deskripsi[0]);
+                        }
+                    }
                 });
+            });
+        });
 
-                //clear form
-                $('#judul').val('');
-                $('#deskripsi').val('');
-                //close modal
-                $('#modal-create').modal('hide');
-                $('#table-halaman').DataTable().ajax.reload();
-            },
-            error: function (error) {
+        /* Menambahkan modal javascript dan update data halaman */
+        $(document).on('click', '.modal-edit', function () {
+            $('#modal-form').modal('show');
+            const id = $(this).data('id');
+            $.get('/dashboard/halaman/' + id, function ({
+                data
+            }) {
+                $('input[name="judul"]').val(data.judul);
+                $('textarea[name="deskripsi"]').val(data.deskripsi);
+                $('.form-halaman').submit(function (e) {
+                    e.preventDefault();
+                    const formData = new FormData(this);
+                    $.ajax({
+                        url: `/dashboard/halaman/${id}?_method=PUT`,
+                        type: 'POST',
+                        data: formData,
+                        cache: false,
+                        contentType: false,
+                        processData: false,
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function (response) {
+                            if (response.success) {
+                                //show success message
+                                Swal.fire({
+                                    type: 'success',
+                                    icon: 'success',
+                                    title: `${response.message}`,
+                                    showConfirmButton: false,
+                                    timer: 3000
+                                });
 
-                if (error.responseJSON.judul[0]) {
+                                //clear form
+                                $('#judul').val('');
+                                $('#deskripsi').val('');
+                                //close modal
+                                $('#modal-create').modal('hide');
+                                $('#table-halaman').DataTable().ajax.reload();
+                            }
+                        },
+                        error: function (error) {
+                            if (error.responseJSON.judul[0]) {
+                                //show alert
+                                $('#alert-title').removeClass('d-none');
+                                $('#alert-title').addClass('d-block');
+                                //add message to alert
+                                $('#alert-title').html(error.responseJSON.judul[0]);
+                            }
+                            if (error.responseJSON.deskripsi[0]) {
+                                //show alert
+                                $('#alert-content').removeClass('d-none');
+                                $('#alert-content').addClass('d-block');
+                                //add message to alert
+                                $('#alert-content').html(error.responseJSON.deskripsi[0]);
+                            }
+                        }
+                    });
+                });
+            });
+        });
 
-                    //show alert
-                    $('#alert-title').removeClass('d-none');
-                    $('#alert-title').addClass('d-block');
-
-                    //add message to alert
-                    $('#alert-title').html(error.responseJSON.judul[0]);
+        /* Menghapus data halaman */
+        $(document).on('click', '.data-hapus', function () {
+            const id = $(this).data('id');
+            Swal.fire({
+                title: 'Apakah Kamu Yakin?',
+                text: "ingin menghapus data ini!",
+                icon: 'warning',
+                showCancelButton: true,
+                cancelButtonText: 'TIDAK',
+                confirmButtonText: 'YA, HAPUS!'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    //fetch to delete data
+                    $.ajax({
+                        url: `/dashboard/halaman/${id}`,
+                        type: "DELETE",
+                        cache: false,
+                        headers: {
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')
+                        },
+                        success: function (response) {
+                            //show success message
+                            Swal.fire({
+                                type: 'success',
+                                icon: 'success',
+                                title: `${response.message}`,
+                                showConfirmButton: false,
+                                timer: 3000
+                            });
+                            //remove post on table
+                            $('#table-halaman').DataTable().ajax.reload();
+                        }
+                    });
                 }
-
-                if (error.responseJSON.deskripsi[0]) {
-
-                    //show alert
-                    $('#alert-content').removeClass('d-none');
-                    $('#alert-content').addClass('d-block');
-
-                    //add message to alert
-                    $('#alert-content').html(error.responseJSON.deskripsi[0]);
-                }
-            }
+            })
         });
     });
 </script>

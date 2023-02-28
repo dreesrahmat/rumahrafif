@@ -22,7 +22,7 @@ class HalamanController extends Controller
             return DataTables()->of($halaman)
                 ->addIndexColumn()
                 ->addColumn('action', function($row){
-                        $btn = '<a href="javascript:void(0)" id="btn-edit-post" data-id="'.$row->id.'" class="btn btn-primary btn-sm">EDIT</a> <a href="javascript:void(0)" id="btn-delete-post" data-id="'.$row->id.'" class="btn btn-danger btn-sm">DELETE</a>';
+                        $btn = '<a data-toggle="modal" href="javascript:void(0)" data-id="'.$row->id.'" class="btn btn-primary btn-sm modal-edit">EDIT</a> <a href="javascript:void(0)" data-id="'.$row->id.'" class="btn btn-danger btn-sm data-hapus">DELETE</a>';
                         return $btn;
                     })
                 ->rawColumns(['action'])
@@ -111,19 +111,30 @@ class HalamanController extends Controller
      */
     public function update(Request $request, Halaman $halaman)
     {
-        $validate = $request->validate(
-            [
-            'judul' => 'required',
-            'deskripsi' => 'required',
-            ],
-            [
-                'judul.required' => 'Judul wajib diisi',
-                'deskripsi.required' => 'Deskripsi wajib diisi',
-            ]
-        );
+        //define validation rules
+        $validator = Validator::make($request->all(), [
+            'judul'     => 'required',
+            'deskripsi'   => 'required',
+        ], [
+            'judul.required' => 'judul halaman harus diisi',
+            'deskripsi.required' => 'deskripsi halaman harus diisi',
+        ]);
 
-        $halaman->update($validate);
-        return redirect()->route('halaman.index')->with('success', 'Halaman berhasil diupdate');
+        //check if validation fails
+        if ($validator->fails()) {
+            return response()->json($validator->errors(), 422);
+        }
+
+        $data = $halaman->update([
+            'judul' => $request->judul,
+            'deskripsi' => $request->deskripsi,
+        ]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Berhasil Diupdate!',
+            'data'    => $data
+        ]);
     }
 
     /**
@@ -135,6 +146,10 @@ class HalamanController extends Controller
     public function destroy(Halaman $halaman)
     {
         $halaman->delete();
-        return redirect()->route('halaman.index')->with('success', 'Data berhasil dihapus');
+        //return response
+        return response()->json([
+            'success' => true,
+            'message' => 'Data Halaman Berhasil Dihapus!.',
+        ]);
     }
 }
